@@ -47,7 +47,11 @@
     
     var $convo = $('#convo'),
         $charCountdown = $('#charCountdown'),
-        $msgCountdown = $('#msgCountdown'),
+        $msgCountdown  = $('#msgCountdown'),
+        $buffer        = $('#buffer'),
+        $transmission  = $('#transmission'),
+        $nick          = $('#nick'),
+        $userlist      = $('#userlist'),
         keyDownTime = 0,
         keyUpTime = 0,
         diff = 0,
@@ -56,8 +60,8 @@
         charReady = true,
         isCountingDownChar = false,
         isCountingDownMsg = false,
-        charThreshold = 400,
-        msgThreshold = 500,
+        charThreshold = 300,
+        msgThreshold = 700,
         charCountdownPercent = 0,
         msgCountdownPercent = 0,
         stopMsgCountdown = false,
@@ -125,13 +129,31 @@
         symbol = null,
         charTime = 0,
         charEndTime = 0,
+        clearTransmission = true,
         
-    putMsg = function(obj) {
-        $msg = $('<div></div>')
-                    .addClass('msg')
-                    .text(obj.msg);
-        $convo.append($msg)
-              .scrollTop($convo[0].scrollHeight);
+    updateUserList = function(users) {
+        var list = '';
+        for (id in users) {
+            list += '<li id="id'+id+'">'+users[id]+'</li>';
+        }
+        $userlist.html(list);
+    },
+    
+    putText = function($li) {
+        $convo.append($li)
+            .scrollTop($convo[0].scrollHeight);
+    },
+
+    putMsg = function(msg) {
+        $msg = $('<li class="text msg"></li>');
+        $msg.text(msg.nick+': '+msg.text);
+        putText($msg);
+    },
+
+    putAlert = function(alert) {
+        $alert = $('<li class="text alert"></li>');
+        $alert.text(alert);
+        putText($alert)
     },
     
     getChar = function() {
@@ -142,32 +164,44 @@
         buffer.length = 0;
         if ( code.hasOwnProperty(morseMsg) ) {
             return code[morseMsg];
-        }
-        console.log('invalid character code: '+morseMsg);
+        }    
+        $transmission.append('invalid character');
+        clearTransmission = true;
         return false;
     },
     
     transmission = function(down, up) {
+        if (clearTransmission) {
+            $transmission.text('');
+            clearTransmission = false;
+        }
         diff = up-down;
         if (diff < charThreshold) {
             buffer.push(dot);
+            $transmission.append('· ');
         } else {
             buffer.push(dash);
+            $transmission.append('– ');
         }
     },
 
     writeCharBuffer = function() {
         symbol = getChar();
-        if (symbol!=false) {
+        if (symbol!==false) {
             strMsg += symbol;
-        }
+            $buffer.text(strMsg);
+            $transmission.text('');
+        }    
+        clearTransmission = true;
     },
     
     sendMsg = function() {
         if (strMsg != null && strMsg > '') {
             socket.send({ msg: strMsg });
             strMsg = '';
-        }
+            $buffer.text('');
+        }    
+        $transmission.text('');
     },
     
     msgCountdown = function() {
@@ -177,22 +211,19 @@
             if (msgEndDiff <= 0) {
                 isCountingDownMsg = false;
                 sendMsg();
-                //$charCountdown.css('border-left-width','300px');
-                //$msgCountdown.css('border-left-width','300px');
                 countdown.resetCountdowns();
                 return;
             }
             msgCountdownPercent = (msgEndDiff / msgThreshold);
             countdown.set2ndCountdown(msgCountdownPercent);
-            //$msgCountdown.css('border-left-width',msgCountdownWidth+'px');
             if (msgEndDiff < 10)
                 setTimeout(msgCountdown, msgEndDiff);
             else
                 setTimeout(msgCountdown, 10);
         } else {
-            //$msgCountdown.css('border-left-width','300px');
             countdown.resetCountdowns();
             isCountingDownMsg = false;
+            clearTransmission = true;
         }
     },
     
@@ -209,22 +240,18 @@
             charEndDiff = charEndTime - new Date().getTime();
             if (charEndDiff <= 0) {
                 isCountingDownChar = false;
-                //$charCountdown.css('border-left-width','0px');
                 countdown.set1stCountdown(0);
-                writeCharBuffer()
+                writeCharBuffer();
                 waitForMsgEnd();
                 return;
             }    
             charCountdownPercent = (charEndDiff / charThreshold);
-            //$charCountdown.css('border-left-width',charCountdownWidth+'px');
             countdown.set1stCountdown(charCountdownPercent);
             if (charEndDiff < 10)
                 setTimeout(charCountdown, charEndDiff);
             else
                 setTimeout(charCountdown, 10);
         } else {
-            //$charCountdown.css('border-left-width','300px');
-            //$msgCountdown.css('border-left-width','300px');
             countdown.resetCountdowns();
             isCountingDownChar = false;
         }
@@ -244,8 +271,12 @@
             for (var i in obj.buffer) {
                 putMsg(obj.buffer[i]);
             }
-        else
-            putMsg(obj);
+        if ('alert' in obj)
+            putAlert(obj.alert);
+        if ('users' in obj)
+            updateUserList(obj.users);
+        if ('msg' in obj)
+            putMsg(obj.msg);
     });
     
     socket.connect();
@@ -267,6 +298,11 @@
             charReady = true;
             waitForCharEnd();
         }
+    });
+    
+    $nick.change(function(e) {
+        e.preventDefault();
+        socket.send({ nick: $nick.val() });
     });
     
     

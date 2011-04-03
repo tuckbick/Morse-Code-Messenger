@@ -40,18 +40,89 @@ app.get('/', function(req, res){
 // Socket.io
 
 var socket = io.listen(app),
-    buffer = []; 
+    nick1 = '', nick2 = '', msg = {};
     
+var UserList = (function(){    
+    var users = {}, count = 0, temp,
+    addUser = function(id, nick) {
+        if (nick === null)
+            nick = 'user'+(count++);
+        users[id] = nick;
+        return nick;
+    },
+    removeUser = function(id) {
+        temp = users[id];
+        delete users[id];
+        return temp;
+    },
+    getNick = function(id) {
+        return users[id];
+    },
+    getUsers = function() {
+        return users;
+    };
+    return {
+        addUser    : addUser,
+        removeUser : removeUser,
+        setNick    : addUser,
+        getNick    : getNick,
+        getUsers   : getUsers 
+    };
+})();
+
+var Buffer = (function(users) {
+    var buffer = [],
+    add = function(msg) {
+        buffer.push(msg);    
+        if (buffer.length > 15) buffer.shift();
+    },
+    get = function() {
+        return buffer;
+    };
+    return {
+        add: add,
+        get: get
+    };
+})(UserList);
+
 socket.on('connection', function(client){
 
-  client.send({ buffer: buffer });
-  client.broadcast({ msg: client.sessionId + ' connected' });
+    client.send({ buffer: Buffer.get() });
 
-  client.on('message', function(msg){
-      buffer.push(msg);
-      if (buffer.length > 15) buffer.shift();
-      socket.broadcast(msg);
-  });
+    nick1 = UserList.addUser(client.sessionId, null);
+    socket.broadcast({
+        alert: nick1 + ' connected',
+        users: UserList.getUsers()
+    });
+
+    client.on('message', function(obj){
+        if ('msg' in obj) {
+            nick1 = UserList.getNick(client.sessionId);
+            msg = {
+                nick: nick1,
+                text: obj.msg
+            };
+            Buffer.add(msg);
+            socket.broadcast({ msg: msg });
+        }
+        if ('nick' in obj) {
+            nick1 = UserList.getNick(client.sessionId);
+            nick2 = UserList.addUser(client.sessionId, obj.nick);
+            socket.broadcast({
+                alert: nick1+' is now known as '+nick2,
+                users: UserList.getUsers()
+            });
+        }
+
+    });
+
+    client.on('disconnect', function(){
+        nick1 = UserList.removeUser(client.sessionId);
+        socket.broadcast({
+            alert: nick1 + ' disconnected',
+            users: UserList.getUsers()
+        });
+    });
 
 });
 

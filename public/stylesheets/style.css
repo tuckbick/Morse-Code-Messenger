@@ -9,26 +9,81 @@ a {
 #wrapper {
   clear: both;}
 
+#console {
+  float: left;
+  margin: 2em 3em 1em 0;}
+
 #convo {
   float: left;
   height: 18em;
   width: 30em;
-  background-color: #DDDDDD;
-  margin: 2em 2em 2em 0;
-  padding: 0 ;
+  background-color: #EEEEEE;
+  padding: 0;
+  margin: 0;
   border: 1px solid #CCCCCC;
+  margin-bottom: 1em;
   overflow-y: scroll;}
-#convo .msg {
+#convo .text {
+  list-style: none;
   color: #111111;
-  padding: 0.25em 1em;}
-#convo .msg:nth-child(odd) {
-  background-color: #F6F6F6;}
+  min-height: 1em;
+  padding: 0.25em 1em .3em 1em;
+  margin: 0;
+  background-color: #F6F6F6;
+  border-bottom: 1px solid #F0F0F0;
+  word-wrap: break-word;}
+#convo .text.alert {
+  font-style: italic;
+  color: #999999;}
+
+#users {
+  float: left;}
+
+#nick {
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  height: 1em;
+  margin: 0;
+  width: 8em;
+  padding: 0.25em;
+  border-width: 1px 1px 1px 0;
+  border-color: #CCCCCC;
+  border-style: solid;}
+
+#userlist {
+  height: 16.5em;
+  margin: 0;
+  padding: 0;
+  background-color: #EEEEEE;
+  border-width: 0 1px 1px 0;
+  border-color: #CCCCCC;
+  border-style: solid;
+  overflow-y: scroll;
+  overflow-x: hidden;}
+#userlist li {
+  list-style: none;
+  padding: 0 0 0 .25em;
+  line-height: 1.25em;}
+
+#buffer {
+  clear: both;
+  width: 28em;
+  height: 1em;
+  padding: 0.75em 1em;
+  background-color: #EEEEEE;
+  border-width: 1px 1px 1px 1px;
+  border-color: #CCCCCC;
+  border-style: solid;}
 
 #codes {
   float: left;
   background: url(/images/morsecodes.png);
   width: 300px;
   height: 300px;}
+
+#transmission {
+  clear: both;
+  height: 1em;
+  margin-bottom: 1em;}
 
 #countdown {
   clear: both;
