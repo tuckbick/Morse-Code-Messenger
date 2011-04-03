@@ -48,7 +48,6 @@ socket.on('connection', function(client){
   client.broadcast({ msg: client.sessionId + ' connected' });
 
   client.on('message', function(msg){
-      console.log(msg);
       buffer.push(msg);
       if (buffer.length > 15) buffer.shift();
       socket.broadcast(msg);
