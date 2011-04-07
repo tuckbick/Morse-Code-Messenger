@@ -42,10 +42,14 @@ app.get('/', function(req, res){
 var socket = io.listen(app),
     nick1 = '', nick2 = '', msg = {};
     
+var trim = function(str) {
+    return str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+};
+
 var UserList = (function(){    
     var users = {}, count = 0, temp,
     addUser = function(id, nick) {
-        if (nick === null)
+        if (nick === null || trim(nick) === '')
             nick = 'user'+(count++);
         users[id] = nick;
         return nick;
