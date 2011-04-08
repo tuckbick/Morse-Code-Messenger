@@ -93,7 +93,10 @@ var Timestamp = (function() {
     var now,
     get = function() {
         now = new Date();
-        return now.toDateString() + ', ' + now.toLocalTimeString();
+        return (now.getMonth()+1)+'/'+now.getDate()+'/'+now.getFullYear()+' '+now.toLocaleTimeString();
+    };
+    return {
+        get: get
     };
 })();
 
