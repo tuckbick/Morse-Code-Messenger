@@ -89,6 +89,14 @@ var Buffer = (function(users) {
     };
 })(UserList);
 
+var Timestamp = (function() {
+    var now,
+    get = function() {
+        now = new Date();
+        return now.toDateString() + ', ' + now.toLocalTimeString();
+    };
+})();
+
 socket.on('connection', function(client){
 
     client.send({ buffer: Buffer.get() });
@@ -104,7 +112,8 @@ socket.on('connection', function(client){
             nick1 = UserList.getNick(client.sessionId);
             msg = {
                 nick: nick1,
-                text: obj.msg
+                text: obj.msg,
+                time: Timestamp.get()
             };
             Buffer.add(msg);
             socket.broadcast({ msg: msg });

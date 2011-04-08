@@ -146,7 +146,7 @@
 
     putMsg = function(msg) {
         $msg = $('<li class="text msg"></li>');
-        $msg.text(msg.nick+': '+msg.text);
+        $msg.text('<span class="time">'+msg.time+'</span>'+msg.nick+': '+msg.text);
         putText($msg);
     },
 
